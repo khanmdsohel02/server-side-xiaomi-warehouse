@@ -21,13 +21,21 @@ async function run() {
     
     try {
         await client.connect();
-        const dealerReviewCollection = client.db('dealerReview').collection('dealerReviewCollection');
+        const dealerReviewCollections= client.db('dealerReview').collection('dealerReviewCollection');
         app.get('/review', async  (req, res) => {
             const query = {};
-            const cursor = dealerReviewCollection.find(query);
+            const cursor = dealerReviewCollections.find(query);
             const reviews = await cursor.toArray();
             res.send(reviews)
-     })
+        })
+          await client.connect();
+          const stockProductsCollections = client.db('stockProducts').collection('stockProductsCollection');
+          app.get('/products', async (req, res) => {
+              const query = {};
+              const cursor = stockProductsCollections.find(query);
+              const products = await cursor.toArray();
+              res.send(products)
+          })
         
     }
     finally{}
