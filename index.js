@@ -20,6 +20,9 @@ const client = new MongoClient(uri, {
 async function run() {
     
     try {
+
+        // GET
+
         await client.connect();
         const dealerReviewCollections= client.db('dealerReview').collection('dealerReviewCollection');
         app.get('/review', async  (req, res) => {
@@ -38,10 +41,21 @@ async function run() {
         })
         app.get('/product/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)};
+            const query = { _id: ObjectId(id) };
             const product = await stockProductsCollections.findOne(query);
             res.send(product);
-         })
+        });
+        
+        // POST
+
+        app.post('/product', async (req, res) => {
+            const newProduct = req.body;
+            const result = await stockProductsCollections.insertOne(newProduct);
+            res.send(result);
+        })
+
+
+
     }
     finally{}
 }
