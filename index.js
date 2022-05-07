@@ -24,19 +24,26 @@ async function run() {
         // GET
 
         await client.connect();
-        const dealerReviewCollections= client.db('dealerReview').collection('dealerReviewCollection');
-        app.get('/review', async  (req, res) => {
+        const dealerReviewCollections = client.db('dealerReview').collection('dealerReviewCollection');
+        app.get('/review', async (req, res) => {
             const query = {};
             const cursor = dealerReviewCollections.find(query);
             const reviews = await cursor.toArray();
             res.send(reviews)
         })
-          await client.connect();
-          const stockProductsCollections = client.db('stockProducts').collection('stockProductsCollection');
+        await client.connect();
+        const stockProductsCollections = client.db('stockProducts').collection('stockProductsCollection');
         app.get('/products', async (req, res) => {
+            const page = parseInt(req.query.page);
+            const showProducts = parseInt(req.query.showProducts);
             const query = {};
             const cursor = stockProductsCollections.find(query);
-            const products = await cursor.toArray();
+            let products;
+            if (page || showProducts) {
+                products = await cursor.skip(page*showProducts).limit(showProducts).toArray();
+            } else {
+                products = await cursor.toArray();
+            }
             res.send(products)
         })
         app.get('/product/:id', async (req, res) => {
@@ -60,10 +67,11 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const result = await stockProductsCollections.deleteOne(query);
             res.send(result);
-        })
-
-
-
+        });
+        app.get('/productCount', async (req, res) => {
+            const count = await stockProductsCollections.estimatedDocumentCount();
+            res.send({count});
+        });
 
     }
     finally{}
