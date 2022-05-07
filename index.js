@@ -51,8 +51,10 @@ async function run() {
             const product = await stockProductsCollections.findOne(query);
             res.send(product);
         });
-            app.get('/myItems', async (req, res) => {
-            const query = {};
+        app.get('/myItems', async (req, res) => {
+            const email = req.query.email;
+            console.log(email);
+            const query = {email};
             const cursor = newStockProductsCollections.find(query);
             const newItem = await cursor.toArray();
             res.send(newItem)
