@@ -20,19 +20,18 @@ const client = new MongoClient(uri, {
 async function run() {
     
     try {
-
-        // GET
-
         await client.connect();
         const dealerReviewCollections = client.db('dealerReview').collection('dealerReviewCollection');
+        const stockProductsCollections = client.db('stockProducts').collection('stockProductsCollection');
+        const newStockProductsCollections = client.db('newStockProducts').collection('newStockProductsCollection');
+        
+
         app.get('/review', async (req, res) => {
             const query = {};
             const cursor = dealerReviewCollections.find(query);
             const reviews = await cursor.toArray();
             res.send(reviews)
-        })
-        await client.connect();
-        const stockProductsCollections = client.db('stockProducts').collection('stockProductsCollection');
+        });
         app.get('/products', async (req, res) => {
             const page = parseInt(req.query.page);
             const showProducts = parseInt(req.query.showProducts);
@@ -52,6 +51,12 @@ async function run() {
             const product = await stockProductsCollections.findOne(query);
             res.send(product);
         });
+            app.get('/myItems', async (req, res) => {
+            const query = {};
+            const cursor = newStockProductsCollections.find(query);
+            const newItem = await cursor.toArray();
+            res.send(newItem)
+        });
         
         // POST
 
@@ -59,6 +64,13 @@ async function run() {
             const newProduct = req.body;
             const result = await stockProductsCollections.insertOne(newProduct);
             res.send(result);
+            // console.log(result);
+        });
+        app.post('/myItems', async (req, res) => {
+            const newItem = req.body;
+            const result = await newStockProductsCollections.insertOne(newItem);
+            res.send(result);
+            console.log(result);
         });
 
         // DELETE
@@ -68,6 +80,14 @@ async function run() {
             const result = await stockProductsCollections.deleteOne(query);
             res.send(result);
         });
+
+        app.delete('/myItem/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await newStockProductsCollections.deleteOne(query);
+            res.send(result);
+        });
+
         app.get('/productCount', async (req, res) => {
             const count = await stockProductsCollections.estimatedDocumentCount();
             res.send({count});
