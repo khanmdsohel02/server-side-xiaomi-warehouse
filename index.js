@@ -23,9 +23,8 @@ async function run() {
         await client.connect();
         const dealerReviewCollections = client.db('dealerReview').collection('dealerReviewCollection');
         const stockProductsCollections = client.db('stockProducts').collection('stockProductsCollection');
-        const newStockProductsCollections = client.db('newStockProducts').collection('newStockProductsCollection');
         
-
+        
         app.get('/review', async (req, res) => {
             const query = {};
             const cursor = dealerReviewCollections.find(query);
@@ -51,42 +50,43 @@ async function run() {
             const product = await stockProductsCollections.findOne(query);
             res.send(product);
         });
-        app.get('/myItems', async (req, res) => {
+         app.get('/myItems', async (req, res) => {
             const email = req.query.email;
             console.log(email);
             const query = {email};
-            const cursor = newStockProductsCollections.find(query);
+            const cursor = stockProductsCollections.find(query);
             const newItem = await cursor.toArray();
             res.send(newItem)
         });
         
         // POST
 
-        app.post('/product', async (req, res) => {
+        app.post('/products', async (req, res) => {
             const newProduct = req.body;
             const result = await stockProductsCollections.insertOne(newProduct);
             res.send(result);
-            // console.log(result);
-        });
-        app.post('/myItems', async (req, res) => {
-            const newItem = req.body;
-            const result = await newStockProductsCollections.insertOne(newItem);
-            res.send(result);
             console.log(result);
         });
+        app.put('/product/:id', async (req, res) => {
+            const id = req.params.id;
+            const updateStock = req.body;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateQuantity = {
+                $set:{
+                    quantity: updateStock.quantity
+                }
+            }
+            const result = await stockProductsCollections.updateOne(filter, updateQuantity, options);
+            res.send(result)
+            console.log(updateQuantity);
+        })
 
         // DELETE
         app.delete('/product/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await stockProductsCollections.deleteOne(query);
-            res.send(result);
-        });
-
-        app.delete('/myItem/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: ObjectId(id) };
-            const result = await newStockProductsCollections.deleteOne(query);
             res.send(result);
         });
 
